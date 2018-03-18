@@ -89,7 +89,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "default" {
   subnet_id     = "${module.vpc.subnet_public1}"
   ami           = "${data.aws_ami.ecs.image_id}"
-  instance_type = "t2.small"
+  instance_type = "t2.medium"
 
   vpc_security_group_ids = [
     "${module.vpc.sg_allow_egress}",
