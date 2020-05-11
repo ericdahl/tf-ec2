@@ -9,6 +9,8 @@ module "vpc" {
 data "aws_ami" "ecs" {
   most_recent = true
 
+  owners = [591542846629]
+
   filter {
     name = "owner-alias"
 
@@ -26,36 +28,36 @@ data "aws_ami" "ecs" {
   }
 }
 
-data "aws_ami" "freebsd_11" {
+data "aws_ami" "freebsd_12" {
+  owners = [782442783595]
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "name"
+    values = ["FreeBSD 12.1-RELEASE-amd64"]
+  }
+
   most_recent = true
-
-  filter {
-    name = "owner-id"
-
-    values = [
-      "118940168514",
-    ]
-  }
-
-  filter {
-    name = "name"
-
-    values = [
-      "FreeBSD 11.1-STABLE-amd64*",
-    ]
-  }
 }
 
 data "aws_ami" "centos_7" {
   most_recent = true
 
-  filter {
-    name = "owner-id"
-
-    values = [
-      "410186602215",
-    ]
-  }
+  owners = [410186602215]
 
   filter {
     name = "name"
@@ -69,13 +71,7 @@ data "aws_ami" "centos_7" {
 data "aws_ami" "ubuntu" {
   most_recent = true
 
-  filter {
-    name = "owner-id"
-
-    values = [
-      "099720109477",
-    ]
-  }
+  owners = [099720109477]
 
   filter {
     name = "name"
@@ -87,15 +83,16 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_instance" "default" {
-  subnet_id     = "${module.vpc.subnet_public1}"
-  ami           = "${data.aws_ami.ecs.image_id}"
+  subnet_id     = module.vpc.subnet_public1
+  ami           = data.aws_ami.ecs.image_id
   instance_type = "t2.medium"
 
   vpc_security_group_ids = [
-    "${module.vpc.sg_allow_egress}",
-    "${module.vpc.sg_allow_22}",
-    "${module.vpc.sg_allow_80}",
+    module.vpc.sg_allow_egress,
+    module.vpc.sg_allow_22,
+    module.vpc.sg_allow_80,
   ]
 
-  key_name = "${var.key_name}"
+  key_name = var.key_name
 }
+
