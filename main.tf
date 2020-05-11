@@ -9,7 +9,7 @@ module "vpc" {
 data "aws_ami" "ecs" {
   most_recent = true
 
-  owners = [591542846629]
+  owners = ["591542846629"]
 
   filter {
     name = "owner-alias"
@@ -29,7 +29,7 @@ data "aws_ami" "ecs" {
 }
 
 data "aws_ami" "freebsd_12" {
-  owners = [782442783595]
+  owners = ["782442783595"]
 
   filter {
     name   = "architecture"
@@ -57,7 +57,7 @@ data "aws_ami" "freebsd_12" {
 data "aws_ami" "centos_7" {
   most_recent = true
 
-  owners = [410186602215]
+  owners = ["410186602215"]
 
   filter {
     name = "name"
@@ -71,7 +71,7 @@ data "aws_ami" "centos_7" {
 data "aws_ami" "ubuntu" {
   most_recent = true
 
-  owners = [099720109477]
+  owners = ["099720109477"]
 
   filter {
     name = "name"
