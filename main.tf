@@ -82,6 +82,11 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+resource "aws_key_pair" "default" {
+  key_name   = "tf-ec2"
+  public_key = var.public_key
+}
+
 resource "aws_instance" "default" {
   subnet_id     = module.vpc.subnet_public1
   ami           = data.aws_ami.ecs.image_id
@@ -93,6 +98,6 @@ resource "aws_instance" "default" {
     module.vpc.sg_allow_80,
   ]
 
-  key_name = var.key_name
+  key_name = aws_key_pair.default.key_name
 }
 
