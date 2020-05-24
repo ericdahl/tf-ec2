@@ -1,103 +1,48 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-1"
 }
 
-module "vpc" {
-  source = "github.com/ericdahl/tf-module-vpc"
+data "aws_ssm_parameter" "amazon_linux_2" {
+  name = "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2"
 }
-
-data "aws_ami" "ecs" {
-  most_recent = true
-
-  owners = ["591542846629"]
-
-  filter {
-    name = "owner-alias"
-
-    values = [
-      "amazon",
-    ]
-  }
-
-  filter {
-    name = "name"
-
-    values = [
-      "*amazon-ecs-optimized*",
-    ]
-  }
-}
-
-data "aws_ami" "freebsd_12" {
-  owners = ["782442783595"]
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "name"
-    values = ["FreeBSD 12.1-RELEASE-amd64"]
-  }
-
-  most_recent = true
-}
-
-data "aws_ami" "centos_7" {
-  most_recent = true
-
-  owners = ["410186602215"]
-
-  filter {
-    name = "name"
-
-    values = [
-      "CentOS Linux 7 x86_64*",
-    ]
-  }
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
-  owners = ["099720109477"]
-
-  filter {
-    name = "name"
-
-    values = [
-      "ubuntu/images/hvm-ssd/ubuntu-zesty-17.04*",
-    ]
-  }
-}
-
 resource "aws_key_pair" "default" {
   key_name   = "tf-ec2"
   public_key = var.public_key
 }
 
 resource "aws_instance" "default" {
-  subnet_id     = module.vpc.subnet_public1
-  ami           = data.aws_ami.ecs.image_id
-  instance_type = "t2.medium"
+  subnet_id     = var.subnet_id
+  ami           = data.aws_ssm_parameter.amazon_linux_2.value
+  instance_type = "c5.large"
 
   vpc_security_group_ids = [
-    module.vpc.sg_allow_egress,
-    module.vpc.sg_allow_22,
-    module.vpc.sg_allow_80,
+    aws_security_group.instance.id
   ]
 
   key_name = aws_key_pair.default.key_name
 }
+
+resource "aws_security_group" "instance" {
+  name   = "tf-ec2"
+  vpc_id = var.vpc_id
+}
+
+resource "aws_security_group_rule" "egress" {
+  security_group_id = aws_security_group.instance.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "allow_22" {
+  security_group_id = aws_security_group.instance.id
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = var.admin_cidrs
+}
+
 
