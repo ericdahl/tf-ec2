@@ -5,6 +5,11 @@ provider "aws" {
 data "aws_ssm_parameter" "amazon_linux_2" {
   name = "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2"
 }
+
+data "aws_ssm_parameter" "ecs_optimized" {
+  name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
+}
+
 resource "aws_key_pair" "default" {
   key_name   = "tf-ec2"
   public_key = var.public_key
@@ -12,7 +17,7 @@ resource "aws_key_pair" "default" {
 
 resource "aws_instance" "default" {
   subnet_id     = var.subnet_id
-  ami           = data.aws_ssm_parameter.amazon_linux_2.value
+  ami           = data.aws_ssm_parameter.ecs_optimized.value
   instance_type = "c5.large"
 
   vpc_security_group_ids = [
